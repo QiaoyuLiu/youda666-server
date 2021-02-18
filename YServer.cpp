@@ -9,12 +9,16 @@
 #include <netdb.h>
 #include <sys/epoll.h>  
 #include <string.h>
+
 #include "YServer.h"
+
+#include <iostream>
+#include <string>
 
 #define MAX_EVENTS 500
 #define _BACKLOG 5
 
-
+//nonblocking socket
 void setnonblocking(int sockfd) {    
     int opts;    
    
@@ -28,7 +32,8 @@ void setnonblocking(int sockfd) {
         perror("fcntl(F_SETFL)\n");    
         exit(1);    
     }    
-}    
+}  
+
 
 void YServer::start(){
     //fd
@@ -42,6 +47,13 @@ void YServer::start(){
     inet_pton(AF_INET, host, &sev_address.sin_addr);
     sev_address.sin_port = htons(port);
     setnonblocking(listen_socket);
+
+    //set socket reuse
+    int so_reuseaddr = 1;
+    setsockopt(listen_socket,SOL_SOCKET,SO_REUSEADDR,
+    &so_reuseaddr,
+    sizeof(so_reuseaddr));
+
     //start
     if (bind(listen_socket, (sockaddr*)&sev_address, sizeof(sockaddr_in))<0) exit(-2);
     if (listen(listen_socket, _BACKLOG)<0) exit(-3);
@@ -50,6 +62,8 @@ void YServer::start(){
     struct epoll_event ret_ev[MAX_EVENTS];
     ev.events = EPOLLIN;
     ev.data.fd = listen_socket;
+    epoll_fd = epoll_create(1024);
+
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, listen_socket, &ev) == -1) {
             perror("epoll_ctl: listen_sock");
             exit(EXIT_FAILURE);
@@ -63,15 +77,17 @@ void YServer::start(){
             exit(-1);
         }
         for (i = 0; i<ret_fd_number; i++){
+            
             //listen_socket return, new connection in
             if (ret_ev[i].data.fd == listen_socket){
-                if(accept_socket = accept(listen_socket, (sockaddr*)&sev_address, &sockaddr_in_size) == -1){
+                if((accept_socket = accept(listen_socket, NULL, NULL)) == -1){
                     perror("accept failure");
                     exit(-1);
                 }
                 setnonblocking(accept_socket);
-                ev.events = EPOLLIN | EPOLLET;
+                ev.events = EPOLLIN | EPOLLET ;
                 ev.data.fd = accept_socket;
+                std::cout<<accept_socket<<std::endl;
                 if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, accept_socket, &ev) == -1) {
                     perror("epoll_ctl: listen_sock");
                     exit(EXIT_FAILURE);
@@ -79,9 +95,23 @@ void YServer::start(){
             }
             //normal request in
             else{
+                int request_length = 0;
+                int pack_length = 0;
+                char buffer[50];
+                std::string *request = new std::string();
+                while((pack_length = read(ret_ev[i].data.fd, &buffer, sizeof(buffer)-1)) > 0){
+                        *request += buffer;
+                        request_length += pack_length;
+                        //std::cout<<request_length<<std::endl;
+                        bzero(&buffer, 50);
+                }
+
+                //std::cout<<(char*)request.data();
                 
-                //handler.handle(char* request);
+                
+                handler->handle(*request);
             }
         }
+        
     }
 }
