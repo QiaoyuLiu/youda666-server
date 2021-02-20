@@ -5,7 +5,7 @@
 
 using std::string;
 using std::regex;
-
+//regex is slow, rewrite with another way
 void HttpRequestParser::parse(std::string& request, std::unordered_map<std::string, std::string*>& request_environment){
     regex re("\\r\\n");
     std::vector<string> lines(std::sregex_token_iterator(request.begin(), request.end(), re, -1),

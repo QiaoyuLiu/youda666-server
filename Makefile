@@ -27,7 +27,7 @@ EXCLUDE_FILES :=./main.cpp ./RequestHandler/test.cpp
 #头文件所在目录列表
 INCLUDE_DIRS :=
 #库文件所在目录列表
-LIBRARY_DIRS :=
+LIBRARY_DIRS :=-I/usr/include/python3.7m
 #公共库文件名列表
 LIBRARY_NAMES := 
 #公共宏定义
@@ -37,7 +37,7 @@ PREPROCESSOR_MACROS :=
 #汇编编译参数
 ASFLAGS := -f win64
 #ld链接参数
-LDFLAGS := -Wl,-gc-sections
+LDFLAGS := -Wl,-gc-sections,-lpython3.7m
 #公共编译参数，根据情况作修改
 COMMONFLAGS := -g -ffunction-sections
 #额外的库文件

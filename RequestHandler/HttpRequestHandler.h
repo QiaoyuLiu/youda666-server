@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include "HttpRequestParser.h"
+#include "WSGIAdapter.h"
 
 class HttpRequestHandler/*: public RequestHandler*/{
     public:
@@ -13,6 +14,7 @@ class HttpRequestHandler/*: public RequestHandler*/{
     private:
         std::unordered_map<std::string, std::string*> request_environment;
         HttpRequestParser* parser;
+        WSGIAdapter* adapter;
 };
 
 #endif

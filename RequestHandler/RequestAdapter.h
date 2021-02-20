@@ -6,7 +6,7 @@
 
 class RequestAdapter{
     public:
-        virtual void parse(std::string& request, std::unordered_map<std::string, std::string*>& map) = 0;
+        virtual void forward(std::unordered_map<std::string, std::string*>& map) = 0;
 };
 
 #endif
